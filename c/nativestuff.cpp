@@ -25,7 +25,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *pjvm, void* /* reserved */) {
 JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_helloNative
   (JNIEnv * env, jobject self, jint delayCnt, jobjectArray arr) {
   	jclass CNativeStuff = env->GetObjectClass(self);
-  	jmethodID NativeStuff_print = env->GetMethodID(c, "print", "(Ljava/lang/String;)V");
+  	jmethodID NativeStuff_print = env->GetMethodID(CNativeStuff, "print", "(Ljava/lang/String;)V");
   	if(NativeStuff_print == nullptr)
   		return; // exception gets thrown into JVM, but should never happen
 	
