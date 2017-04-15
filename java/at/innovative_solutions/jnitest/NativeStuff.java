@@ -20,6 +20,7 @@ public class NativeStuff {
 
 	public native void helloNative(int delayCnt, String[] strings);
 	public native SubClass[] returnArrayOfCustomClasses();
+	public native void throwAnException();
 	
 	public static void main(String[] args) {
 		NativeStuff n = new NativeStuff();
@@ -29,6 +30,12 @@ public class NativeStuff {
 		SubClass[] arr = n.returnArrayOfCustomClasses();
 		for(SubClass e : arr) {
 			System.out.println(e.toString());
+		}
+
+		try {
+			n.throwAnException();
+		} catch(Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 

@@ -6,6 +6,7 @@ Small JNI example that
  - calls Java from native thread
  - create instances with parameters
  - return array of custom classes from C to Java
+ - throw exception in native code
 to show basic JNI usage.
 
 Missing would be

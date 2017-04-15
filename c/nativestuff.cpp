@@ -9,16 +9,21 @@
 #define JNI_VERSION JNI_VERSION_1_8
 
 JavaVM *gJvm;
+jclass CRuntimeError;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *pjvm, void* /* reserved */) {
 	// cache vm instance for usage in native threads
 	gJvm = pjvm;
-	JNIEnv env;
+	JNIEnv *env;
 	if(pjvm->GetEnv((void**)&env, JNI_VERSION))
 		return -1; // failure, get us unloaded
 
 	// cache object reference for performance here
 	// do not forget to create global references for them
+	jclass LocalCRuntimeError = env->FindClass("Ljava/lang/RuntimeException;");
+	if(LocalCRuntimeError == nullptr)
+		return -1;
+	CRuntimeError = (jclass)env->NewGlobalRef(LocalCRuntimeError);
 
 	return JNI_VERSION;
 }
@@ -128,4 +133,12 @@ JNIEXPORT jobjectArray JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff
 	}
 
 	return result;
+}
+
+JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_throwAnException
+  (JNIEnv *env, jobject) {
+  	// do not forget to return from the middle of your code
+  	// ThrowNew will only tell the runtime that you have thrown, it
+  	// will not stop execution of native code
+  	env->ThrowNew(CRuntimeError, "thrown from native code");
 }
