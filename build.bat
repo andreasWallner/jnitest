@@ -1,10 +1,12 @@
+@echo off
+
 set JDK_PATH=c:/Program Files/Java/jdk1.8.0_121
-pushd java
-"%JDK_PATH%/bin/javac.exe" at/innovative_solutions/jnitest/NativeStuff.java
+REM pushd java
+"%JDK_PATH%/bin/javac.exe" -cp java java/at/innovative_solutions/jnitest/NativeStuff.java
 if errorlevel 1 goto onerror
-"%JDK_PATH%/bin/javah.exe" -jni at.innovative_solutions.jnitest.NativeStuff
+"%JDK_PATH%/bin/javah.exe" -cp java -jni at.innovative_solutions.jnitest.NativeStuff
 if errorlevel 1 goto onerror
-popd
+REM popd
 
 pushd c
 cl /W4 /EHsc /D_USRDLL /D_WINDLL /IC:\Programme\Java\jdk1.8.0_121\include /IC:\Programme\Java\jdk1.8.0_121\include\win32 nativestuff.cpp /MT /link /DLL /OUT:jniNativeExample.dll

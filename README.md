@@ -4,16 +4,20 @@ Small JNI example that
  - calls C++ from Java
  - calls Java from C++
  - calls Java from native thread
-to show basic usage.
+ - create instances with parameters
+ - return array of custom classes from C to Java
+to show basic JNI usage.
 
 Missing would be
  - Keeping link between C++ & Java Classes with field in Java
    that holds native pointer/handle
+ - many other things...
 
-Does currently only contain build "scripts" for Visual Studio, but the files
+Does currently only contain a build "script" for Visual Studio, but the files
 run the same on other platforms if compiled correctly.
 
 ## Building & Testing
+ - Fix paths in build.bat
  - Open the Visual Studio command prompt (watch to run the correct one, 32bit vs 64bit,
    matching your VM).
  - enter repo root directory

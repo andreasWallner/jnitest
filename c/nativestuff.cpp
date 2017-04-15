@@ -1,9 +1,10 @@
 #include <jni.h>
-#include "../java/at_innovative_solutions_jnitest_NativeStuff.h"
+#include "../at_innovative_solutions_jnitest_NativeStuff.h"
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <vector>
 
 #define JNI_VERSION JNI_VERSION_1_8
 
@@ -97,4 +98,34 @@ JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_helloNa
 	}, env->NewGlobalRef(self)); // need global ref of self for native thread
 
 	t1.join(); // make it easy for the example... we could e.g. also detach thread
+}
+
+// if we are performance sensitive we should get the classes and method ids in OnLoad
+// do not forget to create global refs for the classes, otherwise they will get collected
+JNIEXPORT jobjectArray JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_returnArrayOfCustomClasses
+  (JNIEnv *env, jobject ) {
+	// FindClass throws an java.lang.NoClassDefFoundError, so we just have to return on error
+	jclass CSubClass = env->FindClass("Lat/innovative_solutions/jnitest/NativeStuff$SubClass;");
+	if (CSubClass == nullptr)
+		return nullptr;
+
+	// GetMethodID throws an java.lang.NoSuchMethodError, so again, just return on error
+	jmethodID CSubClass_init = env->GetMethodID(CSubClass, "<init>", "(Ljava/lang/String;S)V");
+	if (CSubClass_init == nullptr)
+		return nullptr;
+
+	// possible errors like OOM all throw, so again, only return
+	jobjectArray result = env->NewObjectArray(2, CSubClass, nullptr);
+	if (result == nullptr)
+		return nullptr;
+
+	std::vector<std::string> strings {"one", "two"};
+	std::vector<short> shorts {1, 2};
+	for(int i = 0; i < 2; ++i) {
+		jstring s = env->NewStringUTF(strings[i].c_str());
+		jobject element = env->NewObject(CSubClass, CSubClass_init, s, shorts[i]);
+		env->SetObjectArrayElement(result, i, element);
+	}
+
+	return result;
 }
