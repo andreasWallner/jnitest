@@ -1,10 +1,12 @@
 #include <jni.h>
 #include "../at_innovative_solutions_jnitest_NativeStuff.h"
+#include "../at_innovative_solutions_jnitest_NativeStuff_Wrapper.h"
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <chrono>
 #include <vector>
+#include <memory>
 
 #define JNI_VERSION JNI_VERSION_1_8
 
@@ -28,7 +30,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *pjvm, void* /* reserved */) {
 	return JNI_VERSION;
 }
 
-JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_helloNative
+JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_callJavaFromThread
   (JNIEnv * env, jobject self, jint delayCnt, jobjectArray arr) {
   	jclass CNativeStuff = env->GetObjectClass(self);
   	jmethodID NativeStuff_print = env->GetMethodID(CNativeStuff, "print", "(Ljava/lang/String;)V");
@@ -141,4 +143,65 @@ JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_throwAn
   	// ThrowNew will only tell the runtime that you have thrown, it
   	// will not stop execution of native code
   	env->ThrowNew(CRuntimeError, "thrown from native code");
+}
+
+// this class will be owned by the Wrapper Java object
+class WrappedNativeClass {
+	int m_exp;
+public:
+	WrappedNativeClass(int exp) : m_exp(exp) {}
+	int expInNative(int i) {
+		int result = 1;
+		for(int n = m_exp; n; --n)
+			result *= i;
+		return result;
+	};
+};
+
+JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_00024Wrapper_attachNativeObject
+  (JNIEnv *env, jobject self, jint exp) {
+  	// again... cache that class and IDs
+  	jclass CWrapper = env->GetObjectClass(self);
+  	if(CWrapper == nullptr)
+  		return;
+  	
+  	jfieldID fNativeHandleID = env->GetFieldID(CWrapper, "fNativeHandle", "J");
+  	if(fNativeHandleID == nullptr)
+  		return;
+
+	auto native = std::make_unique<WrappedNativeClass>(exp);
+  	env->SetLongField(self, fNativeHandleID, (jlong)native.get());
+  	native.release(); // Java object now owns the instance
+}
+
+JNIEXPORT jint JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_00024Wrapper_expInNative
+  (JNIEnv *env, jobject self, jint i) {
+	jclass CWrapper = env->GetObjectClass(self);
+	if(CWrapper == nullptr)
+		return 0;
+
+	// yes, there really should be some helper methods to get/set the native handle...
+	jfieldID fNativeHandleID = env->GetFieldID(CWrapper, "fNativeHandle", "J");
+	if(fNativeHandleID == nullptr)
+		return 0;
+
+	WrappedNativeClass *native = (WrappedNativeClass*)env->GetLongField(self, fNativeHandleID);
+	return native->expInNative(i);
+}
+
+JNIEXPORT void JNICALL Java_at_innovative_1solutions_jnitest_NativeStuff_00024Wrapper_dispose
+  (JNIEnv *env, jobject self) {
+  	std::cout << "disposing of native object" << std::endl;
+	jclass CWrapper = env->GetObjectClass(self);
+	if(CWrapper == nullptr)
+		return;
+
+	jfieldID fNativeHandleID = env->GetFieldID(CWrapper, "fNativeHandle", "J");
+	if(fNativeHandleID == nullptr)
+		return;
+
+	// set field to 0 to prevent double deletes
+	WrappedNativeClass *native = (WrappedNativeClass*)env->GetLongField(self, fNativeHandleID);
+	env->SetLongField(self, fNativeHandleID, 0);
+	delete native;
 }

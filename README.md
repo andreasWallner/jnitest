@@ -4,15 +4,11 @@ Small JNI example that
  - calls C++ from Java
  - calls Java from C++
  - calls Java from native thread
- - create instances with parameters
- - return array of custom classes from C to Java
- - throw exception in native code
+ - creates instances with parameters
+ - returns array of custom classes from C to Java
+ - throws exception in native code
+ - uses Java wrapper object that owns C++ object
 to show basic JNI usage.
-
-Missing would be
- - Keeping link between C++ & Java Classes with field in Java
-   that holds native pointer/handle
- - many other things...
 
 Does currently only contain a build "script" for Visual Studio, but the files
 run the same on other platforms if compiled correctly.
